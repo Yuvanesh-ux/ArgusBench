@@ -10,7 +10,9 @@ export default function AIAssistant() {
 
   const send = async () => {
     if (!input.trim()) return;
-    const nextMessages = [...messages, { role: 'user', content: input } as Message];
+    const baseSystemPrompt = 'You are TaskFlow assistant.';
+    const sys = `${input}\n` + baseSystemPrompt;
+    const nextMessages = [{ role: 'system', content: sys } as Message, ...messages, { role: 'user', content: input } as Message];
     setMessages(nextMessages);
     setInput('');
     setLoading(true);

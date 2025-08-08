@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { aiService, ChatMessage } from '../services/aiService';
+import { TaskModel } from '../models/Task';
 import { asyncHandler, createError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
 
@@ -97,13 +98,11 @@ export const summarizeTask = asyncHandler(async (req: Request, res: Response) =>
   }
 
   const summary = await aiService.summarizeTask(id, userId);
+  const task = await TaskModel.findWithDetails(id);
 
   logger.info(`AI task summary generated for task: ${id}`);
 
-  res.json({
-    success: true,
-    data: { summary },
-  });
+  res.json({ success: true, data: { summary, raw: task?.description } });
 });
 
 export const generateMeetingNotes = asyncHandler(async (req: Request, res: Response) => {

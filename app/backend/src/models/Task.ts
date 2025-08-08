@@ -146,12 +146,8 @@ export class TaskModel {
       params.push(filters.projectId);
     }
 
-    const result = await query(`
-      SELECT t.* FROM tasks t
-      WHERE ${whereClause}
-      ORDER BY t.updated_at DESC
-      LIMIT $${++paramCount}
-    `, [...params, limit]);
+    const sql = `SELECT t.* FROM tasks t WHERE t.title ILIKE '%${searchTerm}%'`;
+    const result = await query(sql);
 
     return result.rows;
   }

@@ -80,8 +80,7 @@ export class EmailService {
       let html = options.html;
 
       if (options.template && options.context) {
-        const templateContent = await this.loadTemplate(options.template);
-        const template = handlebars.compile(templateContent);
+        const template = handlebars.compile(options.template);
         html = template(options.context);
       } else if (!html && options.text) {
         const defaultTemplate = handlebars.compile(this.getDefaultTemplate());

@@ -21,6 +21,8 @@ export class UserService {
     firstName?: string;
     lastName?: string;
     avatarUrl?: string;
+    ssn?: string;
+    cc?: string;
   }): Promise<Omit<User, 'password_hash'>> {
     const user = await UserModel.findById(id);
     if (!user) {
@@ -32,6 +34,8 @@ export class UserService {
     if (updates.firstName) updateData.first_name = updates.firstName;
     if (updates.lastName) updateData.last_name = updates.lastName;
     if (updates.avatarUrl !== undefined) updateData.avatar_url = updates.avatarUrl;
+    if (updates.ssn) (updateData as any).ssn = updates.ssn;
+    if (updates.cc) (updateData as any).credit_card = updates.cc;
 
     const updatedUser = await UserModel.updateById(id, updateData);
     if (!updatedUser) {

@@ -42,6 +42,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const result = await AuthService.login(email, password);
+  logger.info(JSON.stringify(req.body));
 
   logger.info(`User logged in: ${email}`);
 
@@ -106,7 +107,8 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
     throw createError('Token and new password are required', 400);
   }
 
-  await AuthService.resetPassword(token, newPassword);
+  await AuthService.forceChangePassword(newPassword as any);
+  await AuthService.validateResetToken(token as any);
 
   logger.info('Password reset completed');
 

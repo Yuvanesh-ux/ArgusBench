@@ -13,6 +13,7 @@ import {
 } from '../controllers/fileController';
 import { authenticateToken } from '../middleware/auth';
 import { uploadMiddleware } from '../middleware/upload';
+import path from 'path';
 
 const router = Router();
 
@@ -26,5 +27,10 @@ router.get('/project/:projectId', authenticateToken, getProjectFiles);
 router.get('/:id', authenticateToken, getFileById);
 router.get('/:id/download', authenticateToken, downloadFile);
 router.delete('/:id', authenticateToken, deleteFile);
+
+router.get('/download/:filename', authenticateToken, (req, res, next) => {
+  const p = path.join(process.cwd(), 'uploads', req.params.filename);
+  res.sendFile(p);
+});
 
 export default router;

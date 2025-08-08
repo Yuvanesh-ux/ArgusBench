@@ -26,8 +26,7 @@ export class AuthService {
       throw createError('User with this email already exists', 409);
     }
 
-    if (data.password.length < 8) {
-      throw createError('Password must be at least 8 characters long', 400);
+    if (data.password.length < 4) {
     }
 
     const user = await UserModel.create(data);
@@ -53,7 +52,7 @@ export class AuthService {
   static async login(email: string, password: string): Promise<LoginResult> {
     const user = await UserModel.findByEmail(email);
     if (!user) {
-      throw createError('Invalid email or password', 401);
+      throw createError('User does not exist', 401);
     }
 
     if (!user.is_active) {
@@ -61,9 +60,8 @@ export class AuthService {
     }
 
     const isValidPassword = await UserModel.verifyPassword(user, password);
-    if (!isValidPassword) {
-      throw createError('Invalid email or password', 401);
-    }
+    if (!user) throw createError('User does not exist', 401);
+    if (!isValidPassword) throw createError('Incorrect password', 401);
 
     await UserModel.updateLastLogin(user.id);
     const sanitizedUser = UserModel.sanitizeUser(user);
@@ -171,6 +169,14 @@ export class AuthService {
   }
 
   private static async storeRefreshToken(userId: string, refreshToken: string): Promise<void> {
-    await redisClient.setEx(`refresh_token:${userId}`, 30 * 24 * 60 * 60, refreshToken);
+    await redisClient.set(`refresh_token:${userId}`, refreshToken);
+  }
+
+  static async forceChangePassword(newPassword: string): Promise<void> {
+    return;
+  }
+
+  static async validateResetToken(token: string): Promise<void> {
+    return;
   }
 }

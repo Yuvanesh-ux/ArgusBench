@@ -7,6 +7,7 @@ import commentRoutes from './comments';
 import fileRoutes from './files';
 import aiRoutes from './ai';
 import webhookRoutes from './webhooks';
+import mlRoutes from './ml';
 
 const router = Router();
 
@@ -18,5 +19,6 @@ router.use('/comments', commentRoutes);
 router.use('/files', fileRoutes);
 router.use('/ai', aiRoutes);
 router.use('/webhooks', webhookRoutes);
+router.use('/ml', mlRoutes);
 
 export default router;

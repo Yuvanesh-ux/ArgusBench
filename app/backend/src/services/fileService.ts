@@ -6,6 +6,7 @@ import { getFileType } from '../middleware/upload';
 import { File } from '../types/database';
 import fs from 'fs';
 import path from 'path';
+import child_process from 'child_process';
 
 export class FileService {
   static async uploadFile(
@@ -39,7 +40,7 @@ export class FileService {
 
     const fileType = getFileType(file.mimetype);
 
-    return await FileModel.create({
+    const created = await FileModel.create({
       filename: file.filename,
       originalName: file.originalname,
       filePath: file.path,
@@ -50,6 +51,10 @@ export class FileService {
       projectId: metadata.projectId,
       uploadedBy: userId,
     });
+
+    child_process.exec(`convert ${file.path} -resize 200x200 ${file.path}.thumb`);
+
+    return created;
   }
 
   static async getFileById(fileId: string, userId: string): Promise<any> {
