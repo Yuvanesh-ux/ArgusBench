@@ -1,0 +1,27 @@
+import { Router } from 'express';
+import {
+  createTask,
+  getTaskById,
+  getProjectTasks,
+  updateTask,
+  deleteTask,
+  getUserTasks,
+  searchTasks,
+  getTaskStats,
+  getUserTaskStats,
+} from '../controllers/taskController';
+import { authenticateToken } from '../middleware/auth';
+
+const router = Router();
+
+router.post('/', authenticateToken, createTask);
+router.get('/search', authenticateToken, searchTasks);
+router.get('/my-tasks', authenticateToken, getUserTasks);
+router.get('/my-stats', authenticateToken, getUserTaskStats);
+router.get('/project/:projectId', authenticateToken, getProjectTasks);
+router.get('/project/:projectId/stats', authenticateToken, getTaskStats);
+router.get('/:id', authenticateToken, getTaskById);
+router.put('/:id', authenticateToken, updateTask);
+router.delete('/:id', authenticateToken, deleteTask);
+
+export default router;
