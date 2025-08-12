@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.financehub.repository.TenantRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import com.financehub.entity.User;
 
 @Component
 @Order(10)
@@ -37,6 +40,27 @@ public class TenantFilter extends OncePerRequestFilter {
           return;
         }
       }
+        if (tenantRepository.findBySlugAndActiveTrue(tenantId).isEmpty()) {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or inactive tenant");
+          return;
+        }
+        // Bind tenantId to authenticated user's tenant
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "User not authenticated");
+          return;
+        }
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof User)) {
+          response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid user principal");
+          return;
+        }
+        User user = (User) principal;
+        if (user.getTenantId() == null || !tenantId.equals(user.getTenantId())) {
+          response.sendError(HttpServletResponse.SC_FORBIDDEN, "User does not have access to tenant");
+          return;
+        }
+      }
       TenantContext.setTenantId(tenantId);
       filterChain.doFilter(request, response);
     } finally {
@@ -44,4 +68,3 @@ public class TenantFilter extends OncePerRequestFilter {
     }
   }
 }
-
