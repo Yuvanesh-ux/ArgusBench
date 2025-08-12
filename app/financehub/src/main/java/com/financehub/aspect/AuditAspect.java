@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import lombok.RequiredArgsConstructor;
+lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -135,9 +135,42 @@ public class AuditAspect {
         }
         return copy;
       } catch (Exception e) {
-        // Fallback: return as is if reflection fails
-        return obj;
+        // Fallback: never return the original object unredacted
+        return fullyRedactedPlaceholder(obj);
       }
+    }
+  }
+
+  // Helper to return a fully redacted placeholder if all else fails
+  private Object fullyRedactedPlaceholder(Object obj) {
+    if (obj instanceof Map<?, ?> map) {
+      Map<Object, Object> redacted = new java.util.LinkedHashMap<>();
+      for (Object key : map.keySet()) {
+        if (key instanceof String keyStr && SENSITIVE_KEYS.contains(keyStr.toLowerCase())) {
+          redacted.put(key, "***");
+        } else {
+          redacted.put(key, "[REDACTED]");
+        }
+      }
+      return redacted;
+    } else if (obj instanceof Iterable<?>) {
+      java.util.List<Object> list = new java.util.ArrayList<>();
+      for (Object ignored : (Iterable<?>) obj) {
+        list.add("[REDACTED]");
+      }
+      return list;
+    } else if (obj != null && obj.getClass().isArray()) {
+      int len = java.lang.reflect.Array.getLength(obj);
+      Object arr = java.lang.reflect.Array.newInstance(obj.getClass().getComponentType(), len);
+      for (int i = 0; i < len; i++) {
+        java.lang.reflect.Array.set(arr, i, "[REDACTED]");
+      }
+      return arr;
+    } else if (isPrimitiveOrWrapper(obj.getClass()) || obj instanceof String) {
+      return "[REDACTED]";
+    } else {
+      // For POJOs, return a generic redacted string
+      return "[REDACTED]";
     }
   }
 
