@@ -19,7 +19,7 @@ export default function Reports() {
       <button onClick={() => generate('transaction')}>Generate Transaction Report</button>
       <button onClick={() => generate('account')}>Generate Account Summary</button>
       <ul>
-        {reports.map(r => <li key={r.id}>{r.type} - <a href={`/api/reports/${r.id}/download`} target="_blank">download</a></li>)}
+        {reports.map(r => <li key={r.id}>{r.type} - <a href={`/api/reports/${r.id}/download`} target="_blank" rel="noopener noreferrer">download</a></li>)}
       </ul>
     </div>
   )
