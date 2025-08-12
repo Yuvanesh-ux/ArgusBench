@@ -15,14 +15,14 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, _setToken] = useState<string | null>(localStorage.getItem('token'))
+  // Remove all client-side storage for token
+  const [token, _setToken] = useState<string | null>(null)
   const [tenant, _setTenant] = useState<string>(localStorage.getItem('tenant') || 'demo-tenant')
   const [user, setUser] = useState<User>(null)
 
+  // setToken only updates state, does not persist token client-side
   const setToken = (t: string | null) => {
     _setToken(t)
-    if (t) localStorage.setItem('token', t)
-    else localStorage.removeItem('token')
   }
   const setTenant = (t: string) => {
     _setTenant(t)
@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshMe = async () => {
     try {
-      const r = await api.get('/api/auth/me')
+      const r = await api.get('/api/auth/me', { withCredentials: true })
       setUser(r.data)
     } catch {
       setUser(null)
@@ -39,8 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    if (token) refreshMe()
-  }, [token])
+    refreshMe()
+  }, [])
 
   const value = useMemo(() => ({ user, token, setToken, tenant, setTenant, refreshMe }), [user, token, tenant])
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
