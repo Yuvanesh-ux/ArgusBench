@@ -10,7 +10,7 @@ test:
 	mvn -f app/financehub/pom.xml -B -ntp verify
 
 compose-up:
-	docker compose -f app/financehub/docker-compose.yml up -d --build
+	docker compose -f /Users/yuva/Documents/Github/ArgusBench/app/financehub/docker-compose.yml up -d --build
 
 compose-down:
 	docker compose -f app/financehub/docker-compose.yml down -v

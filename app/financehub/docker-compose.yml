@@ -25,8 +25,11 @@ services:
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      JAVA_OPTS: "-Dkeycloak.profile=preview"
     ports:
-      - "8081:8080"
+      - "8081:8080"      
+    volumes:
+      - keycloak-data:/opt/keycloak/data
 
   app:
     build:
@@ -36,11 +39,11 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       SERVER_PORT: 8080
-      # Enable DB + Flyway when Phase 1 is implemented
-      # SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/financehub
-      # SPRING_DATASOURCE_USERNAME: financehub
-      # SPRING_DATASOURCE_PASSWORD: financehub
-      # SPRING_FLYWAY_ENABLED: "true"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/financehub
+      SPRING_DATASOURCE_USERNAME: financehub
+      SPRING_DATASOURCE_PASSWORD: financehub
+      SPRING_FLYWAY_ENABLED: "true"
+      OAUTH2_ISSUER_URI: http://keycloak:8080/realms/financehub
     ports:
       - "8080:8080"
     depends_on:
@@ -48,7 +51,18 @@ services:
       - redis
       - keycloak
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: financehub-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - app
+
 volumes:
   pgdata:
+  keycloak-data:
 
 
