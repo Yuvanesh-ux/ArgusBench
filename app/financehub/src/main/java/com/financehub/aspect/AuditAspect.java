@@ -6,6 +6,8 @@ import com.financehub.tenancy.TenantContext;
 import com.financehub.repository.AuditLogRepository;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -67,18 +69,83 @@ public class AuditAspect {
     return result;
   }
 
+  private static final Set<String> SENSITIVE_KEYS = new HashSet<>();
+  static {
+    SENSITIVE_KEYS.add("password");
+    SENSITIVE_KEYS.add("token");
+    SENSITIVE_KEYS.add("secret");
+    SENSITIVE_KEYS.add("authorization");
+  }
+
   private String serializeAndRedact(Object obj) {
     try {
-      String json = objectMapper.writeValueAsString(obj);
-      // naive redaction: replace values for common sensitive keys
-      json = json.replaceAll("\\\"password\\\"\\s*:\\s*\\\".*?\\\"", "\"password\":\"***\"");
-      json = json.replaceAll("\\\"token\\\"\\s*:\\s*\\\".*?\\\"", "\"token\":\"***\"");
-      json = json.replaceAll("\\\"secret\\\"\\s*:\\s*\\\".*?\\\"", "\"secret\":\"***\"");
-      json = json.replaceAll("\\\"authorization\\\"\\s*:\\s*\\\".*?\\\"", "\"authorization\":\"***\"");
-      return json;
+      Object redacted = redactSensitiveFields(obj);
+      return objectMapper.writeValueAsString(redacted);
     } catch (Exception e) {
       return null;
     }
+  }
+
+  private Object redactSensitiveFields(Object obj) {
+    if (obj == null) {
+      return null;
+    }
+    if (obj instanceof Map<?, ?> map) {
+      Map<Object, Object> copy = new java.util.LinkedHashMap<>();
+      for (Map.Entry<?, ?> entry : map.entrySet()) {
+        Object key = entry.getKey();
+        if (key instanceof String keyStr && SENSITIVE_KEYS.contains(keyStr.toLowerCase())) {
+          copy.put(key, "***");
+        } else {
+          copy.put(key, redactSensitiveFields(entry.getValue()));
+        }
+      }
+      return copy;
+    } else if (obj instanceof Iterable<?> iterable) {
+      java.util.List<Object> list = new java.util.ArrayList<>();
+      for (Object item : iterable) {
+        list.add(redactSensitiveFields(item));
+      }
+      return list;
+    } else if (obj != null && obj.getClass().isArray()) {
+      int len = java.lang.reflect.Array.getLength(obj);
+      Object arr = java.lang.reflect.Array.newInstance(obj.getClass().getComponentType(), len);
+      for (int i = 0; i < len; i++) {
+        java.lang.reflect.Array.set(arr, i, redactSensitiveFields(java.lang.reflect.Array.get(obj, i)));
+      }
+      return arr;
+    } else if (isPrimitiveOrWrapper(obj.getClass()) || obj instanceof String) {
+      return obj;
+    } else {
+      // For POJOs, use reflection to copy and redact fields
+      try {
+        Class<?> clazz = obj.getClass();
+        Object copy = clazz.getDeclaredConstructor().newInstance();
+        java.beans.BeanInfo beanInfo = java.beans.Introspector.getBeanInfo(clazz, Object.class);
+        for (java.beans.PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) {
+          String name = pd.getName();
+          if (SENSITIVE_KEYS.contains(name.toLowerCase())) {
+            if (pd.getWriteMethod() != null) {
+              pd.getWriteMethod().invoke(copy, "***");
+            }
+          } else if (pd.getReadMethod() != null && pd.getWriteMethod() != null) {
+            Object value = pd.getReadMethod().invoke(obj);
+            pd.getWriteMethod().invoke(copy, redactSensitiveFields(value));
+          }
+        }
+        return copy;
+      } catch (Exception e) {
+        // Fallback: return as is if reflection fails
+        return obj;
+      }
+    }
+  }
+
+  private boolean isPrimitiveOrWrapper(Class<?> clazz) {
+    return clazz.isPrimitive() ||
+      clazz == Boolean.class || clazz == Byte.class || clazz == Character.class ||
+      clazz == Short.class || clazz == Integer.class || clazz == Long.class ||
+      clazz == Float.class || clazz == Double.class;
   }
 
   private String resolveId(Object result) {
@@ -96,5 +163,3 @@ public class AuditAspect {
     }
   }
 }
-
-
