@@ -1,6 +1,6 @@
 # FinanceHub
 
-Enterprise-grade, multi-tenant financial platform built with Spring Boot. This is the clean baseline implementation used later for the benchmark suite.
+Enterprise-grade, multi-tenant financial platform built with Spring Boot.
 
 ## Quick start (dev)
 
