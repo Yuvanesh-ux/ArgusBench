@@ -110,7 +110,6 @@ This report compares the performance of three security scanners against ArgusBen
 
 **Weaknesses:**
 - **Business Logic Blindness**: Only 33% complex workflow detection
-- **No Dependency Analysis**: 0% vulnerable component detection
 - **High False Positives**: 75% noise ratio
 - **Missing Model Security**: Failed on ML model loading/export
 
@@ -133,7 +132,6 @@ This report compares the performance of three security scanners against ArgusBen
 
 ### Universal Weaknesses (All Scanners)
 1. **Business Logic Blindness**: All scanners struggle with complex financial workflows (33% average)
-2. **No Dependency Analysis**: None detect vulnerable components (0% across all)
 3. **Missing Integrity Checks**: All miss file upload validation issues (0% on A08)
 4. **ML Endpoint Gaps**: Limited understanding of ML-specific attack vectors
 5. **Excessive AI Permissions**: None detected overly permissive AI tool access
@@ -145,49 +143,6 @@ This report compares the performance of three security scanners against ArgusBen
 - **Traditional Web**: b2_o3-mini dominates at 94%
 - **Configuration**: b2_o3-mini and b2_gptoss-20b tied at 100%
 
-## Scanner Selection Strategy
-
-| Use Case | Primary Recommendation | Secondary | Rationale |
-|----------|----------------------|-----------|-----------|
-| **General Web Application** | b2_o3-mini | b2_gptoss-20b | Highest overall coverage |
-| **Injection-Heavy Applications** | b2_gptoss-20b | b2_o3-mini | Perfect injection detection |
-| **AI/ML Applications** | b2_o3-mini + b2_gptoss-20b | - | Combined ML model + AI workflow coverage |
-| **Financial Applications** | All three + manual | - | No single scanner adequate for business logic |
-| **Legacy Applications** | b2_o3-mini | b2_gptoss-20b | Better traditional vulnerability coverage |
-| **Low False Positive Tolerance** | b2_gpt-oss-120b | - | Lowest noise ratio at 72% |
-
-### Complementary Scanning Strategy
-1. **Primary Scan**: b2_o3-mini for comprehensive baseline coverage
-2. **Secondary Scan**: b2_gptoss-20b for injection depth and AI workflow analysis  
-3. **Tertiary Scan**: b2_gpt-oss-120b for auto-approval and specialized AI risks
-4. **Manual Testing**: Essential for business logic, especially financial workflows
-5. **Dependency Scanning**: Add dedicated tools like OWASP Dependency Check
-6. **Configuration Review**: Manual audit despite good automated coverage
-
-## Benchmark Effectiveness Analysis
-
-ArgusBench successfully demonstrated:
-
-### **Clear Performance Differentiation**
-- **5% spread** between best (73%) and worst (65%) performers
-- **Distinct category strengths** across different scanner types
-- **Measurable trade-offs** between coverage and precision
-
-### **Category-Specific Insights**
-- **Traditional web security**: Clear winner (b2_o3-mini at 94%)
-- **AI security**: Tied leaders show specialized focus areas
-- **ML security**: Moderate performance across all scanners
-- **Business logic**: Universal weakness requiring manual testing
-
-### **Emerging Security Domain Coverage**
-- **AI workflow security**: 80% best performance shows promise
-- **ML-specific vulnerabilities**: 57% best performance indicates gaps
-- **Cross-domain complexity**: No single scanner excels everywhere
-
-### **Realistic Vulnerability Complexity**
-- **Three difficulty tiers** clearly separated scanner performance
-- **False positive analysis** through 72-76% additional findings
-- **Production-realistic scenarios** with multi-tenant complexity
 
 ## Future Benchmark Enhancements
 
