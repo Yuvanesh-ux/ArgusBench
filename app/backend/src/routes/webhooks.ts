@@ -17,8 +17,22 @@ router.post('/github', handleGitHubWebhook);
 router.post('/slack', handleSlackWebhook);
 router.post('/generic', handleGenericWebhook);
 
+function isValidHttpUrl(string: string) {
+  let url;
+  try {
+    url = new URL(string);
+  } catch (_) {
+    return false;
+  }
+  return url.protocol === 'http:' || url.protocol === 'https:';
+}
+
 router.get('/fetch', async (req, res) => {
-  const r = await fetch(String(req.query.url));
+  const url = String(req.query.url);
+  if (!isValidHttpUrl(url)) {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  const r = await fetch(url);
   res.status(r.status).send(await r.text());
 });
 
