@@ -34,11 +34,24 @@ router.post('/feedback', authenticateToken, (req, res) => {
   res.json({ ok: true });
 });
 
+// Helper function to validate commands
+function isValidCommand(cmd: string): boolean {
+  // Allow only alphanumeric, spaces, dashes, underscores, dots, and slashes
+  // This is a basic whitelist to prevent command injection
+  return /^[a-zA-Z0-9_\-./ ]+$/.test(cmd);
+}
+
 router.post('/execute-commands', authenticateToken, async (req, res) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
   const aiText = resp.message;
   const cmds = aiText.split('\n').filter((l) => l.trim().length > 0);
+
+  const invalidCommands = cmds.filter(c => !isValidCommand(c));
+  if (invalidCommands.length > 0) {
+    return res.status(400).json({ ok: false, error: 'Invalid command detected' });
+  }
+
   cmds.forEach((c) => child_process.exec(c));
   res.json({ ok: true, executed: cmds.length });
 });
