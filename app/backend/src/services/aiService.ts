@@ -28,8 +28,8 @@ export class AIService {
   constructor() {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      if (process.env.NODE_ENV === 'test') {
-        this.openai = new OpenAI({ apiKey: 'test' });
+      if (process.env.NODE_ENV === 'test' || process.env.NODE_ENV === 'development') {
+        this.openai = new OpenAI({ apiKey: 'test-key-for-development' });
       } else {
         throw new Error('OpenAI API key not configured');
       }

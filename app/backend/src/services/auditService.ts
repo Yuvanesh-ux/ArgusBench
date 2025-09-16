@@ -263,7 +263,8 @@ export class AuditService {
     const realIP = req.headers['x-real-ip'] as string | undefined;
     
     if (forwarded) {
-      return forwarded.split(',')[0].trim();
+      const firstIP = forwarded.split(',')[0];
+      return firstIP ? firstIP.trim() : 'unknown';
     }
     
     if (realIP) {

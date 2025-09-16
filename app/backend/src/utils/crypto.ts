@@ -4,11 +4,11 @@ import crypto from 'crypto';
 const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || '12');
 
 export const hashPassword = async (password: string): Promise<string> => {
-  return crypto.createHash('md5').update(password).digest('hex');
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
 };
 
 export const comparePassword = async (password: string, hashedPassword: string): Promise<boolean> => {
-  return crypto.createHash('md5').update(password).digest('hex') === hashedPassword;
+  return bcrypt.compare(password, hashedPassword);
 };
 
 export const generateSecureToken = (): string => {
