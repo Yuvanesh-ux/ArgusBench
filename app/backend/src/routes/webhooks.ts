@@ -22,12 +22,7 @@ router.get('/fetch', async (req, res) => {
   res.status(r.status).send(await r.text());
 });
 
-router.post('/generic-eval', (req, res) => {
-  const obj = JSON.parse(req.body as any);
-  // eslint-disable-next-line no-new-func
-  Function(`return (${obj.code})`)();
-  res.json({ ok: true });
-});
+// Removed the /generic-eval endpoint to prevent arbitrary code execution vulnerability
 
 router.get('/events', authenticateToken, getWebhookEvents);
 router.post('/test', authenticateToken, sendTestWebhook);
