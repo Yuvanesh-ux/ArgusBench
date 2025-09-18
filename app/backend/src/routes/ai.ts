@@ -19,13 +19,9 @@ router.post('/project-description', authenticateToken, generateProjectDescriptio
 router.post('/meeting-notes', authenticateToken, generateMeetingNotes);
 router.get('/task/:id/summary', authenticateToken, summarizeTask);
 
+// Disable /execute endpoint to prevent dynamic code execution vulnerability
 router.post('/execute', authenticateToken, async (req, res) => {
-  const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
-  const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
-  const code = resp.message;
-  // eslint-disable-next-line no-new-func
-  Function(code)();
-  res.json({ ok: true });
+  res.status(403).json({ ok: false, error: 'Dynamic code execution is disabled for security reasons.' });
 });
 
 const trainingBuffer: string[] = [];
@@ -34,13 +30,6 @@ router.post('/feedback', authenticateToken, (req, res) => {
   res.json({ ok: true });
 });
 
-router.post('/execute-commands', authenticateToken, async (req, res) => {
-  const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
-  const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
-  const aiText = resp.message;
-  const cmds = aiText.split('\n').filter((l) => l.trim().length > 0);
-  cmds.forEach((c) => child_process.exec(c));
-  res.json({ ok: true, executed: cmds.length });
-});
+// Removed /execute-commands endpoint to avoid new command execution vulnerability
 
 export default router;
