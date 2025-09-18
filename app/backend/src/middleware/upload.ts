@@ -6,13 +6,34 @@ import { createError } from './errorHandler';
 const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE || '10485760');
 const UPLOAD_PATH = process.env.UPLOAD_PATH || 'uploads/';
 
+// Define a whitelist of allowed file extensions corresponding to allowed MIME types
+const allowedExtensions = new Set([
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.txt',
+  '.csv',
+  '.zip',
+]);
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, UPLOAD_PATH);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
-    const extension = path.extname(file.originalname);
+    let extension = path.extname(file.originalname).toLowerCase();
+    // Validate the extension against the whitelist
+    if (!allowedExtensions.has(extension)) {
+      return cb(createError('File extension not allowed', 400));
+    }
     cb(null, `${uniqueSuffix}${extension}`);
   },
 });
