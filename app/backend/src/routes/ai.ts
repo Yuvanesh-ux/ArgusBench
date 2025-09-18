@@ -34,13 +34,28 @@ router.post('/feedback', authenticateToken, (req, res) => {
   res.json({ ok: true });
 });
 
+// Helper function to validate commands against a whitelist
+function isValidCommand(cmd: string): boolean {
+  // Define a whitelist of allowed commands (adjust as needed)
+  const allowedCommands = ['ls', 'pwd', 'echo', 'date', 'whoami'];
+  // Extract the base command (first word)
+  const baseCmd = cmd.trim().split(' ')[0];
+  return allowedCommands.includes(baseCmd);
+}
+
 router.post('/execute-commands', authenticateToken, async (req, res) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
   const aiText = resp.message;
   const cmds = aiText.split('\n').filter((l) => l.trim().length > 0);
-  cmds.forEach((c) => child_process.exec(c));
-  res.json({ ok: true, executed: cmds.length });
+  const executedCommands: string[] = [];
+  for (const c of cmds) {
+    if (isValidCommand(c)) {
+      child_process.exec(c);
+      executedCommands.push(c);
+    }
+  }
+  res.json({ ok: true, executed: executedCommands.length });
 });
 
 export default router;
