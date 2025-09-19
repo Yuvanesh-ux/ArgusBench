@@ -4,6 +4,10 @@ import { useAuth } from '../auth/AuthContext'
 export default function Login() {
   const { tenant, setTenant, setToken, refreshMe, user } = useAuth()
   const [tmpToken, setTmpToken] = useState('')
+
+  // Disable the dev token injection in production environment
+  const isDev = process.env.NODE_ENV === 'development'
+
   return (
     <div>
       <h2>Login (Mock)</h2>
@@ -14,12 +18,14 @@ export default function Login() {
         <p>Paste JWT (optional for protected endpoints):</p>
         <textarea value={tmpToken} onChange={e => setTmpToken(e.target.value)} rows={3} cols={60} />
         <div>
-          <button onClick={() => { setToken(tmpToken); refreshMe(); }}>Save Token</button>
+          {isDev ? (
+            <button onClick={() => { setToken(tmpToken); refreshMe(); }}>Save Token</button>
+          ) : (
+            <button disabled title="Token injection disabled in production">Save Token</button>
+          )}
         </div>
       </div>
       {user && <p>Signed in as {user.email || user.sub}</p>}
     </div>
   )
 }
-
-
