@@ -12,14 +12,9 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init-complete.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - taskflow-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U taskflow_user -d taskflow_db"]
-      timeout: 20s
-      retries: 10
 
   redis:
     image: redis:7-alpine
@@ -34,8 +29,8 @@ services:
 
   backend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.backend
+      context: ./backend
+      dockerfile: ../docker/Dockerfile.backend
     container_name: taskflow-backend
     ports:
       - "5000:5000"
@@ -43,41 +38,31 @@ services:
       NODE_ENV: development
       DATABASE_URL: postgresql://taskflow_user:taskflow_pass@postgres:5432/taskflow_db
       REDIS_URL: redis://redis:6379
-      JWT_SECRET: dev-jwt-secret-change-in-production
-      JWT_EXPIRES_IN: 7d
-      BCRYPT_ROUNDS: 12
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_started
+      - postgres
+      - redis
     volumes:
-      - ./backend/uploads:/app/uploads
-      - ./backend/logs:/app/logs
+      - ./backend:/app
+      - /app/node_modules
     networks:
       - taskflow-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5000/health"]
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   frontend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
     container_name: taskflow-frontend
     ports:
       - "3000:3000"
     environment:
       VITE_API_URL: http://localhost:5000
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
     networks:
       - taskflow-network
-    restart: unless-stopped
 
 volumes:
   postgres_data:

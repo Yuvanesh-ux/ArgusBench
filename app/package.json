@@ -27,18 +27,9 @@
     "docker:dev": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:prod": "docker-compose -f docker-compose.prod.yml up -d",
-    "docker:prod:down": "docker-compose -f docker-compose.prod.yml down",
-    "setup": "./scripts/dev-setup.sh",
-    "start": "./scripts/start.sh",
-    "build:prod": "./scripts/build.sh",
-    "test:all": "./scripts/test.sh",
-    "deploy": "./scripts/deploy.sh",
-    "db:migrate": "cd backend && npm run migrate",
-    "db:seed": "cd backend && npm run seed",
-    "logs": "docker-compose logs -f",
-    "logs:backend": "docker-compose logs -f backend",
-    "logs:frontend": "docker-compose logs -f frontend",
-    "status": "docker-compose ps"
+    "setup": "npm install && npm run setup:db && npm run setup:env",
+    "setup:db": "cd backend && npm run migrate && npm run seed",
+    "setup:env": "cp .env.example .env"
   },
   "devDependencies": {
     "@types/node": "^20.8.0",
