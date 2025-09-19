@@ -16,7 +16,8 @@ public class CorsConfig {
       @Value("${FRONTEND_ORIGIN:http://localhost:3000}") String frontendOrigin) {
     CorsConfiguration config = new CorsConfiguration();
     
-    config.setAllowedOriginPatterns(List.of("*"));  
+    // Restrict allowed origins to the trusted frontend origin when credentials are allowed
+    config.setAllowedOrigins(List.of(frontendOrigin));
     config.setAllowedMethods(List.of("*"));         
     config.setAllowedHeaders(List.of("*"));        
     config.setAllowCredentials(true);               
@@ -37,5 +38,3 @@ public class CorsConfig {
     return source;
   }
 }
-
-
