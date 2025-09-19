@@ -29,8 +29,12 @@ router.get('/:id/download', authenticateToken, downloadFile);
 router.delete('/:id', authenticateToken, deleteFile);
 
 router.get('/download/:filename', authenticateToken, (req, res, next) => {
-  const p = path.join(process.cwd(), 'uploads', req.params.filename);
-  res.sendFile(p);
+  const filename = req.params.filename;
+  if (!filename) {
+    return res.status(400).json({ error: 'Filename parameter is required' });
+  }
+  const p = path.join(process.cwd(), 'uploads', filename);
+  return res.sendFile(p);
 });
 
 export default router;

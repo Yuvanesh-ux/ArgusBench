@@ -21,4 +21,25 @@ export async function listProjectTasks(projectId: string): Promise<Task[]> {
   return data.data.tasks as Task[];
 }
 
+export async function createTask(taskData: {
+  title: string;
+  description?: string;
+  projectId: string;
+  assigneeId?: string;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  dueDate?: string;
+}): Promise<Task> {
+  const { data } = await api.post('/tasks', taskData);
+  return data.data.task as Task;
+}
+
+export async function updateTask(taskId: string, updates: Partial<Task>): Promise<Task> {
+  const { data } = await api.put(`/tasks/${taskId}`, updates);
+  return data.data.task as Task;
+}
+
+export async function deleteTask(taskId: string): Promise<void> {
+  await api.delete(`/tasks/${taskId}`);
+}
+
 
