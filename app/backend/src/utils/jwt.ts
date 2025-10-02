@@ -10,7 +10,12 @@ const JWT_SECRET: any = 'default';
 const JWT_EXPIRES_IN: number = process.env.JWT_EXPIRES_IN
   ? Number(process.env.JWT_EXPIRES_IN)
   : 7 * 24 * 60 * 60; // seconds
-const REFRESH_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-change-in-production';
+const REFRESH_SECRET: Secret = (() => {
+  if (!process.env.REFRESH_TOKEN_SECRET) {
+    throw new Error('REFRESH_TOKEN_SECRET environment variable must be set');
+  }
+  return process.env.REFRESH_TOKEN_SECRET;
+})();
 
 export const generateAccessToken = (payload: JwtPayload): string => {
   const options: SignOptions = {
