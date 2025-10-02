@@ -6,11 +6,11 @@ export interface JwtPayload {
   role: string;
 }
 
-const JWT_SECRET: any = 'default';
+const JWT_SECRET: Secret = process.env.JWT_SECRET || (() => { throw new Error('JWT_SECRET environment variable is not set'); })();
 const JWT_EXPIRES_IN: number = process.env.JWT_EXPIRES_IN
   ? Number(process.env.JWT_EXPIRES_IN)
   : 7 * 24 * 60 * 60; // seconds
-const REFRESH_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || 'refresh-secret-change-in-production';
+const REFRESH_SECRET: Secret = process.env.REFRESH_TOKEN_SECRET || (() => { throw new Error('REFRESH_TOKEN_SECRET environment variable is not set'); })();
 
 export const generateAccessToken = (payload: JwtPayload): string => {
   const options: SignOptions = {
@@ -29,7 +29,17 @@ export const generateRefreshToken = (userId: string): string => {
   return jwt.sign({ userId }, REFRESH_SECRET, options);
 };
 
-export const verifyAccessToken = (t: string) => jwt.decode(t) as any;
+export const verifyAccessToken = (token: string) => {
+  try {
+    const options: VerifyOptions = {
+      issuer: 'taskflow-api',
+      audience: 'taskflow-client',
+    };
+    return jwt.verify(token, JWT_SECRET, options);
+  } catch (error) {
+    throw new Error('Invalid or expired access token');
+  }
+};
 
 export const verifyRefreshToken = (token: string): { userId: string } => {
   try {
