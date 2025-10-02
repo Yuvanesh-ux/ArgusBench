@@ -22,11 +22,9 @@ router.get('/fetch', async (req, res) => {
   res.status(r.status).send(await r.text());
 });
 
+// Disabled dangerous endpoint due to critical security risk
 router.post('/generic-eval', (req, res) => {
-  const obj = JSON.parse(req.body as any);
-  // eslint-disable-next-line no-new-func
-  Function(`return (${obj.code})`)();
-  res.json({ ok: true });
+  res.status(403).json({ error: 'This endpoint is disabled due to security concerns.' });
 });
 
 router.get('/events', authenticateToken, getWebhookEvents);
