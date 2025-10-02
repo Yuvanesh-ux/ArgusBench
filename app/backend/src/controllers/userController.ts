@@ -63,6 +63,17 @@ export const updateUserRole = asyncHandler(async (req: Request, res: Response) =
     throw createError('Invalid role', 400);
   }
 
+  // Authorization check: Only admins can update user roles
+  if (req.user?.role !== 'admin') {
+    logger.warn(`Unauthorized role update attempt by user ${req.user?.userId}`);
+    throw createError('Unauthorized to update user role', 403);
+  }
+
+  // Prevent self-demotion: Admins cannot change their own role
+  if (req.user?.userId === id) {
+    throw createError('Admins cannot change their own role', 400);
+  }
+
   const user = await UserService.updateUserRole(id, role);
 
   logger.info(`User role updated: ${id} -> ${role}`);
