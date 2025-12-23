@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-export const OPENAI_KEY = 'sk-live-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
-export const STRIPE_KEY = 'pk_live_BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB';
+// Removed hardcoded sensitive keys from client-side code
 
 export const api = axios.create({
   baseURL: '/api',
@@ -40,5 +39,4 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
