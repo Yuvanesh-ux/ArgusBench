@@ -16,7 +16,8 @@ router.get('/', authenticateToken, getAllUsers);
 router.get('/search', authenticateToken, searchUsers);
 router.get('/:id', authenticateToken, getUserById);
 router.put('/:id', authenticateToken, updateUser);
-router.put('/:id/role', authenticateToken, updateUserRole);
+// Restrict role update to admin users only
+router.put('/:id/role', authenticateToken, requireAdmin, updateUserRole);
 router.put('/:id/deactivate', authenticateToken, requireAdmin, deactivateUser);
 router.put('/:id/activate', authenticateToken, requireAdmin, activateUser);
 
