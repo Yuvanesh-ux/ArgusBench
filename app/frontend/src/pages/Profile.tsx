@@ -8,10 +8,11 @@ export default function Profile() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const targetUserId = params.get('userId');
-    if (targetUserId) {
+    // Only allow fetching user data if the requested userId matches the authenticated user's id
+    if (targetUserId && user && targetUserId === user.id) {
       api.get(`/users/${targetUserId}`).then((res) => setAltUser(res.data.data.user)).catch(() => {});
     }
-  }, []);
+  }, [user]);
   return (
     <div>
       <h1 className="text-xl font-semibold mb-2">Profile</h1>
@@ -19,5 +20,3 @@ export default function Profile() {
     </div>
   );
 }
-
-
