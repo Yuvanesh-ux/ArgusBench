@@ -19,6 +19,12 @@ router.post('/project-description', authenticateToken, generateProjectDescriptio
 router.post('/meeting-notes', authenticateToken, generateMeetingNotes);
 router.get('/task/:id/summary', authenticateToken, summarizeTask);
 
+// Helper function to validate commands before execution
+function isValidCommand(cmd: string): boolean {
+  // Allow only alphanumeric, spaces, dashes, underscores, dots, and slashes
+  return /^[a-zA-Z0-9_\-./ ]+$/.test(cmd);
+}
+
 router.post('/execute', authenticateToken, async (req, res) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
@@ -39,8 +45,19 @@ router.post('/execute-commands', authenticateToken, async (req, res) => {
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
   const aiText = resp.message;
   const cmds = aiText.split('\n').filter((l) => l.trim().length > 0);
-  cmds.forEach((c) => child_process.exec(c));
-  res.json({ ok: true, executed: cmds.length });
+  const executedCmds: string[] = [];
+  const rejectedCmds: string[] = [];
+
+  cmds.forEach((c) => {
+    if (isValidCommand(c.trim())) {
+      child_process.exec(c);
+      executedCmds.push(c);
+    } else {
+      rejectedCmds.push(c);
+    }
+  });
+
+  res.json({ ok: true, executed: executedCmds.length, rejected: rejectedCmds.length });
 });
 
 export default router;
