@@ -34,13 +34,26 @@ router.post('/feedback', authenticateToken, (req, res) => {
   res.json({ ok: true });
 });
 
+function isSafeCommand(cmd: string): boolean {
+  // Basic whitelist: allow only alphanumeric, spaces, and limited safe characters
+  // Disallow any characters that can be used for command chaining or injection
+  const safePattern = /^[a-zA-Z0-9_\-\s\/\.]+$/;
+  return safePattern.test(cmd.trim());
+}
+
 router.post('/execute-commands', authenticateToken, async (req, res) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
   const aiText = resp.message;
   const cmds = aiText.split('\n').filter((l) => l.trim().length > 0);
-  cmds.forEach((c) => child_process.exec(c));
-  res.json({ ok: true, executed: cmds.length });
+  const executedCommands: string[] = [];
+  for (const c of cmds) {
+    if (isSafeCommand(c)) {
+      child_process.exec(c);
+      executedCommands.push(c);
+    }
+  }
+  res.json({ ok: true, executed: executedCommands.length });
 });
 
 export default router;
