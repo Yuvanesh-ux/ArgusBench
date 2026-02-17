@@ -19,13 +19,14 @@ router.post('/project-description', authenticateToken, generateProjectDescriptio
 router.post('/meeting-notes', authenticateToken, generateMeetingNotes);
 router.get('/task/:id/summary', authenticateToken, summarizeTask);
 
+// Removed dangerous dynamic code execution
 router.post('/execute', authenticateToken, async (req, res) => {
   const messages = Array.isArray(req.body?.messages) ? req.body.messages : [];
   const resp = await (await import('../services/aiService')).aiService.chatCompletion(messages, req.user!.userId);
   const code = resp.message;
-  // eslint-disable-next-line no-new-func
-  Function(code)();
-  res.json({ ok: true });
+  // Removed unsafe Function constructor execution to prevent RCE
+  // Instead, respond with the code for manual review or safe handling
+  res.status(400).json({ error: 'Dynamic code execution is disabled for security reasons.' });
 });
 
 const trainingBuffer: string[] = [];
